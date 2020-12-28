@@ -12,7 +12,7 @@ namespace DotNetConf2021xSeoul
 {
     public static class clsDotNetConf2021xSeoul
     {
-        [FunctionName("Func_Order_DotNetConf2021xSeoul")]
+        [FunctionName("Order")]
         public static async Task<IActionResult> Order([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req, ILogger log)
         {
             try
@@ -27,8 +27,8 @@ namespace DotNetConf2021xSeoul
                 Param.ADD("@RegHost", DataType.VarChar, 100, req.Host.ToString());
                 Param.ADD("@RegAPIPath", DataType.VarChar, 200, req.Path.ToString());
 
-                NETX _Net = new NETX();
-                _Net.쿼리ExecuteNonQuery("DotNet2021xSeoul.dbo.USP_T_ORDERS", Param.GetDS());
+                NETX mNETX = new NETX();
+                mNETX.쿼리ExecuteNonQuery("DotNet2021xSeoul.dbo.USP_T_ORDERS", Param.GetDS());
 
                 string name = req.Query["name"];
 
@@ -61,7 +61,7 @@ namespace DotNetConf2021xSeoul
             //}
         }
 
-        [FunctionName("Func_Cancel_DotNetConf2021xSeoul")]
+        [FunctionName("OrderCancel")]
         public static async Task<IActionResult> OrderCancel([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req, ILogger log)
         {
             log.LogInformation($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")} : Http trigger 펑션 {req.Host.ToString()} 이 시작되었습니다.");
