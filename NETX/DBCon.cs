@@ -29,15 +29,11 @@ public class DBCon
             throw ex;
         }
     }
-
     public DBCon(string v연결값)
     {
         try
         {
             SqlCon = new SqlConnection(v연결값);
-
-
-
         }
         catch (Exception ex)
         {
@@ -84,7 +80,6 @@ public class DBCon
         }
 
         return ds;
-
     }
 
     public void ExecuteNonQuery(string 쿼리, SqlParameter[] 파라미터, CommandType 타입)
@@ -123,98 +118,5 @@ public class DBCon
 
             SqlCon.Dispose();
         }
-
-    }
-
-    public Hashtable ExecuteNonQuery(string 쿼리, SqlParameter[] 파라미터, CommandType 타입, params string[] 아웃파라미터)
-    {
-        int nRnt = -1;
-
-        Hashtable ht = new Hashtable();
-
-        try
-        {
-            SqlCommand sqlcmd = new SqlCommand(쿼리, SqlCon);
-            sqlcmd.CommandTimeout = 300;
-            sqlcmd.CommandType = 타입;
-
-            if (파라미터 != null)
-            {
-                foreach (SqlParameter param in 파라미터)
-                {
-                    sqlcmd.Parameters.Add(param);
-                }
-            }
-
-            SqlCon.Open();
-
-            nRnt = sqlcmd.ExecuteNonQuery();
-
-            if (아웃파라미터.Length > 0)
-            {
-                for (int lCnt = 0; lCnt < 아웃파라미터.Length; lCnt++)
-                {
-                    ht.Add(아웃파라미터[lCnt].ToString(), sqlcmd.Parameters[아웃파라미터[lCnt].ToString()].Value.ToString());
-                }
-            }
-
-            return ht;
-
-        }
-        catch (Exception ex)
-        {
-            throw ex;
-        }
-        finally
-        {
-            if (SqlCon.State == ConnectionState.Open)
-            {
-                SqlCon.Close();
-            }
-
-            SqlCon.Dispose();
-        }
-
-    }
-
-    public object ExecuteScalar(string 쿼리, SqlParameter[] 파라미터, CommandType 타입)
-    {
-        object QueryResultData = null;
-
-        try
-        {
-            SqlCommand sqlcmd = new SqlCommand(쿼리, SqlCon);
-            sqlcmd.CommandTimeout = 300;
-            sqlcmd.CommandType = 타입;
-
-            if (파라미터 != null)
-            {
-                foreach (SqlParameter param in 파라미터)
-                {
-                    sqlcmd.Parameters.Add(param);
-                }
-            }
-
-            SqlCon.Open();
-
-            QueryResultData = sqlcmd.ExecuteScalar();
-
-        }
-        catch (Exception ex)
-        {
-            throw ex;
-        }
-        finally
-        {
-            if (SqlCon.State == ConnectionState.Open)
-            {
-                SqlCon.Close();
-            }
-
-            SqlCon.Dispose();
-        }
-
-        return QueryResultData;
-
     }
 }

@@ -88,119 +88,54 @@ namespace DotNetConf2021xSeoul
             return 타입;
         }
 
-        private string DB연결문자(string DB, string 프로그램버전)
-        {
-            string v연결값 = "";
-            string Workstationid = "";
-
-            if (프로그램버전.IndexOf("|") >= 0)
-            {
-                Workstationid = 프로그램버전.Substring(프로그램버전.IndexOf("|") + 1);
-                프로그램버전 = 프로그램버전.Substring(0, 프로그램버전.IndexOf("|"));
-            }
-            else
-            {
-                Workstationid = "NoData";
-            }
-
-            //if (프로그램버전.Trim() == string.Empty)
-            //    프로그램버전 = "IssuePlanServer";
-
-            //if (DB == "MODEWARE3")
-            //{
-            //    //v연결값 = "Initial Catalog = Modeware3;Data Source = 210.116.122.252,1942;User id = mode_user3;Password = djEjstoRldi!;Connect Timeout=300;" + "Application Name = " + 프로그램버전 + ";workstation id = " + Workstationid;
-            //    v연결값 = "Initial Catalog = Modeware3;Data Source = 172.17.6.11,1942;User id = mode_user3;Password = djEjstoRldi!;Connect Timeout=300;" + "Application Name = " + 프로그램버전 + ";workstation id = " + Workstationid;
-            //}
-            //else if (DB == "TEST")
-            //{
-            //    v연결값 = "Initial Catalog = Modeware3;Data Source = 172.17.6.14,1942;User id = mode_user3;Password = rufghsgkqtlek;Connect Timeout=300;" + "Application Name = " + 프로그램버전;
-            //}
-            //else if (DB == "ERROR")
-            //{
-            //    v연결값 = "Initial Catalog = Modeware3;Data Source = 172.17.6.11,1943;User id = mode_user3;Password = djEjstoRldi!;Connect Timeout=300;" + "Application Name = " + 프로그램버전 + ";workstation id = " + Workstationid;
-            //}
-            //else if (DB == "TSM")
-            //{
-            //    v연결값 = "Initial Catalog = TSM;Data Source = 127.0.0.1,1942;User id = sa;Password = 8880;Connect Timeout=300;" + "Application Name = " + 프로그램버전 + ";workstation id = " + Workstationid;
-            //}
-            //else if (DB == "SVR65")
-            //{
-            //    v연결값 = "Initial Catalog = Modeware3;Data Source = 172.17.6.65,1942;User id = mode_user3;Password = djEjstoRldi!;Connect Timeout=300;" + "Application Name = " + 프로그램버전 + ";workstation id = " + Workstationid;
-            //}
-            //else
-            //{
-            //    v연결값 = "";
-            //}
-
-            v연결값 = "Initial Catalog = DotNet2021xSeoul"
-                    + "; Data Source = 20.194.33.2,10063"
-                    + "; User id = user_dba"
-                    + "; Password = Cm!202012"
-                    + "; Connect Timeout = " + Convert.ToString(20) // 20sec
-                    + "; Application Name = " + "DotNet2021xSeoul_Order" // "Application_Name"
-                    + "; TrustServerCertificate = true"
-                    + "; Encrypt = true";
-
-            //if (v연결값 != "")
-            //    v연결값 += ";TrustServerCertificate = true;Encrypt = true";
-
-            return v연결값;
-        }
-
-        public void 쿼리ExecuteNonQuery(string 프로시저명, DataSet 파라미터, string 프로그램버전 = "", string _DB = "DotNet2021xSeoul")
+        public void ExecuteNonQuery(string 프로시저명, DataSet 파라미터)
         {
             int i = 0;
             SqlParameter[] sqlParam = null;
 
-            //if (트랜잭션 == false)
-            //{
-                DBCon dbCon = null;
+            DBCon dbCon = null;
 
-                try
+            try
+            {
+                dbCon = new DBCon(DB연결문자());
+
+                sqlParam = new SqlParameter[파라미터.Tables[0].Rows.Count];
+                //sqlParam = new SqlParameter[파라미터.Tables[0].Rows.Count - 2];
+                //sqlParam = new SqlParameter[파라미터.Tables[0].Rows.Count - 1];
+                    
+                foreach (DataRow dr in 파라미터.Tables[0].Rows)
                 {
-                    dbCon = new DBCon(DB연결문자(_DB, 프로그램버전));
-
-                    sqlParam = new SqlParameter[파라미터.Tables[0].Rows.Count];
-                    //sqlParam = new SqlParameter[파라미터.Tables[0].Rows.Count - 2];
-
-                    // sqlParam = new SqlParameter[파라미터.Tables[0].Rows.Count - 1];
-                    //sqlParam = new SqlParameter[파라미터.Tables[0].Rows.Count];
-
-                    foreach (DataRow dr in 파라미터.Tables[0].Rows)
+                    if (dr["컬럼명"].ToString() != "@IP추적")
                     {
-                        if (dr["컬럼명"].ToString() != "@IP추적")
+                        if (dr["컬럼명"].ToString() != "@사용자추적")
                         {
-                            if (dr["컬럼명"].ToString() != "@사용자추적")
-                            {
 
-                                sqlParam[i] = new SqlParameter();
-                                sqlParam[i].ParameterName = dr["컬럼명"].ToString();
-                                sqlParam[i].SqlDbType = DB타입(dr["타입"].ToString());
-                                sqlParam[i].Size = Convert.ToInt32(dr["사이즈"].ToString());
-                                if (dr["값"].ToString().ToUpper() == "NULL")
-                                {
-                                    sqlParam[i].Value = DBNull.Value;
-                                }
-                                else
-                                {
-                                    sqlParam[i].Value = dr["값"].ToString();
-                                }
-                                i++;
+                            sqlParam[i] = new SqlParameter();
+                            sqlParam[i].ParameterName = dr["컬럼명"].ToString();
+                            sqlParam[i].SqlDbType = DB타입(dr["타입"].ToString());
+                            sqlParam[i].Size = Convert.ToInt32(dr["사이즈"].ToString());
+                            if (dr["값"].ToString().ToUpper() == "NULL")
+                            {
+                                sqlParam[i].Value = DBNull.Value;
                             }
+                            else
+                            {
+                                sqlParam[i].Value = dr["값"].ToString();
+                            }
+                            i++;
                         }
                     }
-
-                    dbCon.ExecuteNonQuery(프로시저명, sqlParam, CommandType.StoredProcedure);
-
                 }
-                catch (Exception ex)
-                {
-                    throw ex;
-                }
-            //}
+
+                dbCon.ExecuteNonQuery(프로시저명, sqlParam, CommandType.StoredProcedure);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
-        public DataSet 쿼리FillDataSet(string 프로시저명, DataSet 파라미터, string 프로그램버전 = "", string _DB = "DotNet2021xSeoul")
+        public DataSet FillDataSet(string 프로시저명, DataSet 파라미터)
         {
             int i = 0;
             DBCon dbCon = null;
@@ -215,7 +150,7 @@ namespace DotNetConf2021xSeoul
 
             try
             {
-                dbCon = new DBCon(DB연결문자(_DB, 프로그램버전));
+                dbCon = new DBCon(DB연결문자());
 
                 InfoMessage = "";
                 dbCon.SqlCon.InfoMessage += new SqlInfoMessageEventHandler(SqlConnection_InfoMessage);
@@ -283,6 +218,22 @@ namespace DotNetConf2021xSeoul
         private void SqlConnection_InfoMessage(object sender, SqlInfoMessageEventArgs e)
         {
             InfoMessage += e.Message;
+        }
+
+        private string DB연결문자()
+        {
+            string v = "";
+
+            v = "Initial Catalog = DotNet2021xSeoul"
+                    + "; Data Source = 20.194.33.2,10063"
+                    + "; User id = user_dba"
+                    + "; Password = Cm!202012"
+                    + "; Connect Timeout = " + Convert.ToString(20) // 20sec
+                    + "; Application Name = " + "DotNet2021xSeoul" // "Application_Name"
+                    + "; TrustServerCertificate = true"
+                    + "; Encrypt = true";
+
+            return v;
         }
     }
 
