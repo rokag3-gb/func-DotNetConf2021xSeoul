@@ -14,7 +14,102 @@ namespace DotNetConf2021xSeoul
 {
     public static class clsDotNetConf2021xSeoul
     {
-        private static readonly string _Region = "Korea Central";
+        [FunctionName("Order")]
+        public static async Task<IActionResult> Order(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req, ILogger log
+            )
+        {
+            //string resourceId = "subscriptions/f743325c-9857-4f13-bff9-bc1976f25693/resourceGroups/RG-JW-DotNetConf2021xSeoul/providers/Microsoft.Web/sites/func-DotNetConf2021xSeoul";
+            //string ResourceInfo = GetResourceInfo(resourceId);
+
+            try
+            {
+                log.LogInformation($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")} : Http trigger 펑션 {req.Host.ToString()} 이 시작되었습니다.");
+                
+                NETX mNETX = new NETX();
+                mNETX.Add("@MemberNo", DataType.Int, 0, 1066370);
+                mNETX.Add("@ProductNo", DataType.Int, 0, 132456);
+                mNETX.Add("@OrderQty", DataType.Int, 0, 1);
+                //mNETX.Add("@IsCancel", DataType.Bit, 0, "0");
+                mNETX.Add("@Region", DataType.VarChar, 100, _Region);
+                mNETX.Add("@Host", DataType.VarChar, 100, req.Host);
+                mNETX.Add("@APIPath", DataType.VarChar, 200, req.Path);
+
+                mNETX.ExecuteNonQuery("DotNet2021xSeoul.dbo.USP_T_ORDERS", mNETX.GetDS());
+
+                string name = req.Query["name"];
+
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+                dynamic data = JsonConvert.DeserializeObject(requestBody);
+                name = name ?? data?.name;
+
+                //string responseMessage = string.IsNullOrEmpty(name)
+                //    ? "이 http 트리거 펑션이 성공적으로 실행되었습니다. 개인화된 응답을 위해 쿼리 문자열 또는 요청 본문에 이름을 전달할 수 있습니다." // "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
+                //    : $"안녕하세요, {name}님. 이 http 트리거 펑션이 성공적으로 실행되었습니다." // $"Hello, {name}. This HTTP triggered function executed successfully."
+                //    ;
+
+                //string responseMessage = string.IsNullOrEmpty(name)
+                //    ? "이 http 트리거 펑션이 성공적으로 실행되었습니다. 개인화된 응답을 위해 쿼리 문자열 또는 요청 본문에 이름을 전달할 수 있습니다."
+                //    : $"안녕하세요, {name}님. 이 http 트리거 펑션이 성공적으로 실행되었습니다."
+                //    ;
+
+                string responseMessage = "데이터베이스에 값을 정상적으로 기록했습니다.";
+
+                System.Security.Claims.ClaimsIdentity Claim = req.GetAppServiceIdentity();
+
+                Version ver = Environment.Version; // .NET framework version 이 구해진다.
+                
+                responseMessage = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}, " +
+                    $"Host = {req.Host.ToString()}, " +
+                    $"Path = {req.Path.ToString()}, " +
+                    //$"PathBase = {req.PathBase.ToString()}, " +
+                    //$"ClaimsIdentity = {Claim.Name}, " +
+                    $"Method = {req.Method}, " +
+                    $"Body = {requestBody}, " +
+                    $"responseMessage = {responseMessage}, " +
+                    //$"ResourceInfo = {ResourceInfo}, " +
+                    $"APIVersion = {String.Format("v{0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision)}";
+
+                return new OkObjectResult(responseMessage);
+            }
+            catch (Exception Ex)
+            {
+                return new OkObjectResult(Ex.Message);
+            }
+            //finally
+            //{
+            //}
+        }
+
+        [FunctionName("OrderCancel")]
+        public static async Task<IActionResult> OrderCancel(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req, ILogger log
+            )
+        {
+            log.LogInformation($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")} : Http trigger 펑션 {req.Host.ToString()} 이 시작되었습니다.");
+            
+            string name = req.Query["name"];
+
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            dynamic data = JsonConvert.DeserializeObject(requestBody);
+            name = name ?? data?.name;
+
+            //string responseMessage = string.IsNullOrEmpty(name)
+            //    ? "이 http 트리거 펑션이 성공적으로 실행되었습니다. 개인화된 응답을 위해 쿼리 문자열 또는 요청 본문에 이름을 전달할 수 있습니다." // "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
+            //    : $"안녕하세요, {name}님. 이 http 트리거 펑션이 성공적으로 실행되었습니다." // $"Hello, {name}. This HTTP triggered function executed successfully."
+            //    ;
+            string responseMessage = string.IsNullOrEmpty(name)
+                ? "이 http 트리거 펑션이 성공적으로 실행되었습니다. 개인화된 응답을 위해 쿼리 문자열 또는 요청 본문에 이름을 전달할 수 있습니다."
+                : $"안녕하세요, {name}님. 이 http 트리거 펑션이 성공적으로 실행되었습니다."
+                ;
+            responseMessage = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")} : {req.Host.ToString()}, {req.Path.ToString()}, {responseMessage}";
+            //HttpRequest.Host = localhost:7071
+            //HttpRequest.Path = /api/FuncDotNet2021xSeoul_Order
+            return new OkObjectResult(responseMessage);
+        }
+
+        //private static readonly string _Region = "Korea Central";
+        private static readonly string _Region = "West US";
 
         /// <summary>
         /// 특정 resourceId 에 대한 정보를 가져옵니다. https://docs.microsoft.com/ko-kr/rest/api/resources/resources/getbyid
@@ -70,97 +165,6 @@ namespace DotNetConf2021xSeoul
             }
 
             return Ret;
-        }
-
-        [FunctionName("Order")]
-        public static async Task<IActionResult> Order([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req, ILogger log)
-        {
-            //string resourceId = "subscriptions/f743325c-9857-4f13-bff9-bc1976f25693/resourceGroups/RG-JW-DotNetConf2021xSeoul/providers/Microsoft.Web/sites/func-DotNetConf2021xSeoul";
-            //string ResourceInfo = GetResourceInfo(resourceId);
-
-            try
-            {
-                log.LogInformation($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")} : Http trigger 펑션 {req.Host.ToString()} 이 시작되었습니다.");
-                
-                NETX_parameter Param = new NETX_parameter();
-                Param.ADD("@MemberNo", DataType.Int, 0, "1066370");
-                Param.ADD("@ProductNo", DataType.Int, 0, "132456");
-                Param.ADD("@OrderQty", DataType.Int, 0, "1");
-                //Param.ADD("@IsCancel", DataType.Bit, 0, "0");
-                Param.ADD("@Region", DataType.VarChar, 100, _Region);
-                Param.ADD("@RegHost", DataType.VarChar, 100, req.Host.ToString());
-                Param.ADD("@RegAPIPath", DataType.VarChar, 200, req.Path.ToString());
-
-                NETX mNETX = new NETX();
-                mNETX.ExecuteNonQuery("DotNet2021xSeoul.dbo.USP_T_ORDERS", Param.GetDS());
-
-                string name = req.Query["name"];
-
-                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-                dynamic data = JsonConvert.DeserializeObject(requestBody);
-                name = name ?? data?.name;
-
-                //string responseMessage = string.IsNullOrEmpty(name)
-                //    ? "이 http 트리거 펑션이 성공적으로 실행되었습니다. 개인화된 응답을 위해 쿼리 문자열 또는 요청 본문에 이름을 전달할 수 있습니다." // "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                //    : $"안녕하세요, {name}님. 이 http 트리거 펑션이 성공적으로 실행되었습니다." // $"Hello, {name}. This HTTP triggered function executed successfully."
-                //    ;
-
-                //string responseMessage = string.IsNullOrEmpty(name)
-                //    ? "이 http 트리거 펑션이 성공적으로 실행되었습니다. 개인화된 응답을 위해 쿼리 문자열 또는 요청 본문에 이름을 전달할 수 있습니다."
-                //    : $"안녕하세요, {name}님. 이 http 트리거 펑션이 성공적으로 실행되었습니다."
-                //    ;
-
-                string responseMessage = "데이터베이스에 값을 정상적으로 기록했습니다.";
-
-                System.Security.Claims.ClaimsIdentity Claim = req.GetAppServiceIdentity();
-
-                Version ver = Environment.Version; // .NET framework version 이 구해진다.
-                
-                responseMessage = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}, " +
-                    $"Host = {req.Host.ToString()}, " +
-                    $"Path = {req.Path.ToString()}, " +
-                    //$"PathBase = {req.PathBase.ToString()}, " +
-                    //$"ClaimsIdentity = {Claim.Name}, " +
-                    $"Method = {req.Method}, " +
-                    $"Body = {requestBody}, " +
-                    $"responseMessage = {responseMessage}, " +
-                    //$"ResourceInfo = {ResourceInfo}, " +
-                    $"APIVersion = {String.Format("v{0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision)}";
-
-                return new OkObjectResult(responseMessage);
-            }
-            catch (Exception Ex)
-            {
-                return new OkObjectResult(Ex.Message);
-            }
-            //finally
-            //{
-            //}
-        }
-
-        [FunctionName("OrderCancel")]
-        public static async Task<IActionResult> OrderCancel([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req, ILogger log)
-        {
-            log.LogInformation($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")} : Http trigger 펑션 {req.Host.ToString()} 이 시작되었습니다.");
-            
-            string name = req.Query["name"];
-
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
-
-            //string responseMessage = string.IsNullOrEmpty(name)
-            //    ? "이 http 트리거 펑션이 성공적으로 실행되었습니다. 개인화된 응답을 위해 쿼리 문자열 또는 요청 본문에 이름을 전달할 수 있습니다." // "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-            //    : $"안녕하세요, {name}님. 이 http 트리거 펑션이 성공적으로 실행되었습니다." // $"Hello, {name}. This HTTP triggered function executed successfully."
-            //    ;
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "이 http 트리거 펑션이 성공적으로 실행되었습니다. 개인화된 응답을 위해 쿼리 문자열 또는 요청 본문에 이름을 전달할 수 있습니다."
-                : $"안녕하세요, {name}님. 이 http 트리거 펑션이 성공적으로 실행되었습니다."
-                ;
-            responseMessage = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")} : {req.Host.ToString()}, {req.Path.ToString()}, {responseMessage}";
-            //HttpRequest.Host = localhost:7071
-            //HttpRequest.Path = /api/FuncDotNet2021xSeoul_Order
-            return new OkObjectResult(responseMessage);
         }
     }
 }

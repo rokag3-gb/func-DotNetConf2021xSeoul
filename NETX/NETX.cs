@@ -8,84 +8,66 @@ namespace DotNetConf2021xSeoul
 {
     public class NETX
     {
-        private SqlDbType DB타입(string 타입값)
-        {
-            SqlDbType 타입;
+        public DataTable dt = null;
 
-            if (타입값 == "SqlDbType.BigInt")
+        public NETX()
+        {
+            dt = new DataTable();
+            dt.Columns.AddRange(new DataColumn[] { new DataColumn("컬럼명"),
+                                                   new DataColumn("타입"),
+                                                   new DataColumn("사이즈"),
+                                                   new DataColumn("값") });
+            dt.Columns["값"].DataType = Type.GetType("System.Object");
+        }
+
+        public void Add(string 파라미터명, string 타입, int 사이즈, object 값)
+        {
+            if (값 is DataTable)
             {
-                타입 = SqlDbType.BigInt;
-            }
-            else if (타입값 == "SqlDbType.Binary")
-            {
-                타입 = SqlDbType.Binary;
-            }
-            else if (타입값 == "SqlDbType.Bit")
-            {
-                타입 = SqlDbType.Bit;
-            }
-            else if (타입값 == "SqlDbType.Char")
-            {
-                타입 = SqlDbType.Char;
-            }
-            else if (타입값 == "SqlDbType.Date")
-            {
-                타입 = SqlDbType.Date;
-            }
-            else if (타입값 == "SqlDbType.DateTime")
-            {
-                타입 = SqlDbType.DateTime;
-            }
-            else if (타입값 == "SqlDbType.DateTime2")
-            {
-                타입 = SqlDbType.DateTime2;
-            }
-            else if (타입값 == "SqlDbType.Decimal")
-            {
-                타입 = SqlDbType.Decimal;
-            }
-            else if (타입값 == "SqlDbType.Float")
-            {
-                타입 = SqlDbType.Float;
-            }
-            else if (타입값 == "SqlDbType.Image")
-            {
-                타입 = SqlDbType.Image;
-            }
-            else if (타입값 == "SqlDbType.Int")
-            {
-                타입 = SqlDbType.Int;
-            }
-            else if (타입값 == "SqlDbType.Money")
-            {
-                타입 = SqlDbType.Money;
-            }
-            else if (타입값 == "SqlD bType.NChar")
-            {
-                타입 = SqlDbType.NChar;
-            }
-            else if (타입값 == "SqlDbType.NText")
-            {
-                타입 = SqlDbType.NText;
-            }
-            else if (타입값 == "SqlDbType.NVarChar")
-            {
-                타입 = SqlDbType.NVarChar;
-            }
-            else if (타입값 == "SqlDbType.Real")
-            {
-                타입 = SqlDbType.Real;
-            }
-            else if (타입값 == "SqlDbType.VarChar")
-            {
-                타입 = SqlDbType.VarChar;
+                DataTable temp = (DataTable)값;
+                byte[] bin = ConvDataTableToBin(temp);
+
+                dt.Rows.Add(파라미터명, 타입, 사이즈, bin);
             }
             else
             {
-                타입 = SqlDbType.Int;
+                dt.Rows.Add(파라미터명, 타입, 사이즈, 값);
             }
+        }
 
-            return 타입;
+        private SqlDbType DataType(string typevalue)
+        {
+            // C# 8 : switch expression
+            var mType = typevalue switch
+            {
+                "SqlDbType.Int" => SqlDbType.Int,
+                "SqlDbType.BigInt" => SqlDbType.BigInt,
+                "SqlDbType.Decimal" => SqlDbType.Decimal,
+                "SqlDbType.Float" => SqlDbType.Float,
+                "SqlDbType.Money" => SqlDbType.Money,
+                "SqlDbType.Real" => SqlDbType.Real,
+
+                "SqlDbType.VarChar" => SqlDbType.VarChar,
+                "SqlDbType.NVarChar" => SqlDbType.NVarChar,
+                "SqlD bType.Char" => SqlDbType.Char,
+                "SqlD bType.NChar" => SqlDbType.NChar,
+                "SqlDbType.Text" => SqlDbType.Text,
+                "SqlDbType.NText" => SqlDbType.NText,
+
+                "SqlDbType.Bit" => SqlDbType.Bit,
+
+                "SqlDbType.Date" => SqlDbType.Date,
+                "SqlDbType.DateTime" => SqlDbType.DateTime,
+                "SqlDbType.DateTime2" => SqlDbType.DateTime2,
+
+                "SqlDbType.Binary" => SqlDbType.Binary,
+                "SqlDbType.VarBinary" => SqlDbType.VarBinary,
+                "SqlDbType.Image" => SqlDbType.Image,
+
+                _ => throw new ArgumentException()
+            };
+
+            return mType;
         }
 
         public void ExecuteNonQuery(string 프로시저명, DataSet 파라미터)
@@ -102,29 +84,24 @@ namespace DotNetConf2021xSeoul
                 sqlParam = new SqlParameter[파라미터.Tables[0].Rows.Count];
                 //sqlParam = new SqlParameter[파라미터.Tables[0].Rows.Count - 2];
                 //sqlParam = new SqlParameter[파라미터.Tables[0].Rows.Count - 1];
-                    
+
                 foreach (DataRow dr in 파라미터.Tables[0].Rows)
                 {
-                    if (dr["컬럼명"].ToString() != "@IP추적")
-                    {
-                        if (dr["컬럼명"].ToString() != "@사용자추적")
-                        {
+                    sqlParam[i] = new SqlParameter();
+                    sqlParam[i].ParameterName = dr["컬럼명"].ToString();
+                    sqlParam[i].SqlDbType = DataType(dr["타입"].ToString());
+                    sqlParam[i].Size = Convert.ToInt32(dr["사이즈"].ToString());
 
-                            sqlParam[i] = new SqlParameter();
-                            sqlParam[i].ParameterName = dr["컬럼명"].ToString();
-                            sqlParam[i].SqlDbType = DB타입(dr["타입"].ToString());
-                            sqlParam[i].Size = Convert.ToInt32(dr["사이즈"].ToString());
-                            if (dr["값"].ToString().ToUpper() == "NULL")
-                            {
-                                sqlParam[i].Value = DBNull.Value;
-                            }
-                            else
-                            {
-                                sqlParam[i].Value = dr["값"].ToString();
-                            }
-                            i++;
-                        }
+                    if (dr["값"].ToString().ToUpper() == "NULL")
+                    {
+                        sqlParam[i].Value = DBNull.Value;
                     }
+                    else
+                    {
+                        sqlParam[i].Value = dr["값"].ToString();
+                    }
+
+                    i++;
                 }
 
                 dbCon.ExecuteNonQuery(프로시저명, sqlParam, CommandType.StoredProcedure);
@@ -166,7 +143,7 @@ namespace DotNetConf2021xSeoul
                         {
                             sqlParam[i] = new SqlParameter();
                             sqlParam[i].ParameterName = dr["컬럼명"].ToString();
-                            sqlParam[i].SqlDbType = DB타입(dr["타입"].ToString());
+                            sqlParam[i].SqlDbType = DataType(dr["타입"].ToString());
                             sqlParam[i].Size = Convert.ToInt32(dr["사이즈"].ToString());
 
                             if (dr["값"].ToString().ToUpper() == "NULL")
@@ -218,6 +195,30 @@ namespace DotNetConf2021xSeoul
         private void SqlConnection_InfoMessage(object sender, SqlInfoMessageEventArgs e)
         {
             InfoMessage += e.Message;
+        }
+
+        private byte[] ConvDataTableToBin(DataTable dt)
+        {
+            byte[] result = null;
+
+            using (MemoryStream stm = new MemoryStream())
+            {
+                BinaryFormatter bf = new BinaryFormatter();
+                //dt.RemotingFormat = SerializationFormat.Binary;
+                bf.Serialize(stm, dt);
+                result = stm.ToArray();
+            }
+
+            return result;
+        }
+
+        public DataSet GetDS()
+        {
+            DataSet ds = new DataSet();
+
+            ds.Tables.Add(dt);
+
+            return ds;
         }
 
         private string DB연결문자()

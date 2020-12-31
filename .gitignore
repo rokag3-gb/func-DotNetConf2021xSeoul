@@ -262,7 +262,7 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
-clsDotNet2021xSeoul_Order.cs
+clsDotNet2021xSeoul.cs
 .vscode/tasks.json
 .vscode/settings.json
 .vscode/extensions.json
