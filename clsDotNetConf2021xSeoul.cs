@@ -34,14 +34,9 @@ namespace DotNetConf2021xSeoul
                 int ProductNo = Convert.ToInt32(data?["ProductNo"]);
                 int OrderQty = Convert.ToInt32(data?["OrderQty"]);
 
-                if (String.IsNullOrEmpty(MemberNo.ToString()) || MemberNo == 0)
-                    throw new Exception("request body 에서 MemberNo 값을 추출할 수 없습니다.");
-
-                if (String.IsNullOrEmpty(ProductNo.ToString()) || ProductNo == 0)
-                    throw new Exception("request body 에서 ProductNo 값을 추출할 수 없습니다.");
-
-                if (String.IsNullOrEmpty(OrderQty.ToString()) || OrderQty == 0)
-                    throw new Exception("request body 에서 OrderQty 값을 추출할 수 없습니다.");
+                if (IsNullorWrongValue(MemberNo, 0)) throw new Exception("request body 에서 MemberNo 값을 추출할 수 없습니다.");
+                if (IsNullorWrongValue(ProductNo, 0)) throw new Exception("request body 에서 ProductNo 값을 추출할 수 없습니다.");
+                if (IsNullorWrongValue(OrderQty, 0)) throw new Exception("request body 에서 OrderQty 값을 추출할 수 없습니다.");
 
                 NETX mNETX = new NETX();
                 mNETX.Add("@MemberNo", DataType.Int, 0, MemberNo);
@@ -60,7 +55,7 @@ namespace DotNetConf2021xSeoul
                     $"Method = {req.Method}" + "\r\n" +
                     $"Body = {Body}" + "\r\n" +
                     $"Message = Orders 테이블에 데이터를 정상적으로 반영했습니다.";
-
+                
                 return new OkObjectResult(responseMessage);
             }
             catch (Exception Ex)
@@ -91,8 +86,7 @@ namespace DotNetConf2021xSeoul
                 
                 int OrgOrderNo = Convert.ToInt32(data?["OrgOrderNo"]);
 
-                if (String.IsNullOrEmpty(OrgOrderNo.ToString()) || OrgOrderNo == 0)
-                    throw new Exception("request body 에서 OrgOrderNo 값을 추출할 수 없습니다.");
+                if (IsNullorWrongValue(OrgOrderNo, 0)) throw new Exception("request body 에서 OrgOrderNo 값을 추출할 수 없습니다.");
 
                 NETX mNETX = new NETX();
                 mNETX.Add("@OrgOrderNo", DataType.Int, 0, OrgOrderNo);
@@ -124,6 +118,14 @@ namespace DotNetConf2021xSeoul
                 log.LogInformation($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}"+ "\r\n" +
                     "Host {req.Host.ToString()} 에서 Http trigger - OrderCancel 이(가) 종료되었습니다.");
             }
+        }
+
+        private static bool IsNullorWrongValue(int? Value, int? WrongValue)
+        {
+            if (String.IsNullOrEmpty(Value?.ToString()) || Value == WrongValue)
+                return true;
+            else
+                return false;
         }
 
         private static readonly string _Region = "Korea Central";
