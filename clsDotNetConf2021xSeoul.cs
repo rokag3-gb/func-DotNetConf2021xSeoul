@@ -24,61 +24,56 @@ namespace DotNetConf2021xSeoul
 
             try
             {
-                log.LogInformation($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")} : Http trigger 펑션 {req.Host.ToString()} 이 시작되었습니다.");
+                log.LogInformation($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}" + "\r\n" +
+                    " Host {req.Host.ToString()} 에서 Http trigger - Order 이(가) 시작되었습니다.");
+
+                string Body = await new StreamReader(req.Body).ReadToEndAsync();
+                dynamic data = JsonConvert.DeserializeObject(Body);
                 
+                int MemberNo = Convert.ToInt32(data?["MemberNo"]);
+                int ProductNo = Convert.ToInt32(data?["ProductNo"]);
+                int OrderQty = Convert.ToInt32(data?["OrderQty"]);
+
+                if (String.IsNullOrEmpty(MemberNo.ToString()) || MemberNo == 0)
+                    throw new Exception("request body 에서 MemberNo 값을 추출할 수 없습니다.");
+
+                if (String.IsNullOrEmpty(ProductNo.ToString()) || ProductNo == 0)
+                    throw new Exception("request body 에서 ProductNo 값을 추출할 수 없습니다.");
+
+                if (String.IsNullOrEmpty(OrderQty.ToString()) || OrderQty == 0)
+                    throw new Exception("request body 에서 OrderQty 값을 추출할 수 없습니다.");
+
                 NETX mNETX = new NETX();
-                mNETX.Add("@MemberNo", DataType.Int, 0, 1066370);
-                mNETX.Add("@ProductNo", DataType.Int, 0, 132456);
-                mNETX.Add("@OrderQty", DataType.Int, 0, 1);
-                //mNETX.Add("@IsCancel", DataType.Bit, 0, "0");
+                mNETX.Add("@MemberNo", DataType.Int, 0, MemberNo);
+                mNETX.Add("@ProductNo", DataType.Int, 0, ProductNo);
+                mNETX.Add("@OrderQty", DataType.Int, 0, OrderQty);
                 mNETX.Add("@Region", DataType.VarChar, 100, _Region);
                 mNETX.Add("@Host", DataType.VarChar, 100, req.Host);
                 mNETX.Add("@APIPath", DataType.VarChar, 200, req.Path);
 
-                mNETX.ExecuteNonQuery("DotNet2021xSeoul.dbo.USP_T_ORDERS", mNETX.GetDS());
+                mNETX.ExecuteNonQuery("DBO.USP_T_ORDERS");
 
-                string name = req.Query["name"];
-
-                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-                dynamic data = JsonConvert.DeserializeObject(requestBody);
-                name = name ?? data?.name;
-
-                //string responseMessage = string.IsNullOrEmpty(name)
-                //    ? "이 http 트리거 펑션이 성공적으로 실행되었습니다. 개인화된 응답을 위해 쿼리 문자열 또는 요청 본문에 이름을 전달할 수 있습니다." // "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                //    : $"안녕하세요, {name}님. 이 http 트리거 펑션이 성공적으로 실행되었습니다." // $"Hello, {name}. This HTTP triggered function executed successfully."
-                //    ;
-
-                //string responseMessage = string.IsNullOrEmpty(name)
-                //    ? "이 http 트리거 펑션이 성공적으로 실행되었습니다. 개인화된 응답을 위해 쿼리 문자열 또는 요청 본문에 이름을 전달할 수 있습니다."
-                //    : $"안녕하세요, {name}님. 이 http 트리거 펑션이 성공적으로 실행되었습니다."
-                //    ;
-
-                string responseMessage = "데이터베이스에 값을 정상적으로 기록했습니다.";
-
-                System.Security.Claims.ClaimsIdentity Claim = req.GetAppServiceIdentity();
-
-                Version ver = Environment.Version; // .NET framework version 이 구해진다.
-                
-                responseMessage = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}, " +
-                    $"Host = {req.Host.ToString()}, " +
-                    $"Path = {req.Path.ToString()}, " +
-                    //$"PathBase = {req.PathBase.ToString()}, " +
-                    //$"ClaimsIdentity = {Claim.Name}, " +
-                    $"Method = {req.Method}, " +
-                    $"Body = {requestBody}, " +
-                    $"responseMessage = {responseMessage}, " +
-                    //$"ResourceInfo = {ResourceInfo}, " +
-                    $"APIVersion = {String.Format("v{0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision)}";
+                string responseMessage = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}" + "\r\n" +
+                    $"Region = {_Region}" + "\r\n" +
+                    $"Host = {req.Host.ToString()}" + "\r\n" +
+                    $"Path = {req.Path.ToString()}" + "\r\n" +
+                    $"Method = {req.Method}" + "\r\n" +
+                    $"Body = {Body}" + "\r\n" +
+                    $"Message = Orders 테이블에 데이터를 정상적으로 반영했습니다.";
 
                 return new OkObjectResult(responseMessage);
             }
             catch (Exception Ex)
             {
+                log.LogError(Ex, $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")} : {Ex.Message}", null);
+
                 return new OkObjectResult(Ex.Message);
             }
-            //finally
-            //{
-            //}
+            finally
+            {
+                log.LogInformation($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}" + "\r\n" +
+                    "Host {req.Host.ToString()} 에서 Http trigger - Order 이(가) 종료되었습니다.");
+            }
         }
 
         [FunctionName("OrderCancel")]
@@ -86,30 +81,53 @@ namespace DotNetConf2021xSeoul
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req, ILogger log
             )
         {
-            log.LogInformation($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")} : Http trigger 펑션 {req.Host.ToString()} 이 시작되었습니다.");
-            
-            string name = req.Query["name"];
+            try
+            {
+                log.LogInformation($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}" + "\r\n" +
+                    "Host {req.Host.ToString()} 에서 Http trigger - OrderCancel 이(가) 시작되었습니다.");
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
+                string Body = await new StreamReader(req.Body).ReadToEndAsync();
+                dynamic data = JsonConvert.DeserializeObject(Body);
+                
+                int OrgOrderNo = Convert.ToInt32(data?["OrgOrderNo"]);
 
-            //string responseMessage = string.IsNullOrEmpty(name)
-            //    ? "이 http 트리거 펑션이 성공적으로 실행되었습니다. 개인화된 응답을 위해 쿼리 문자열 또는 요청 본문에 이름을 전달할 수 있습니다." // "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-            //    : $"안녕하세요, {name}님. 이 http 트리거 펑션이 성공적으로 실행되었습니다." // $"Hello, {name}. This HTTP triggered function executed successfully."
-            //    ;
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "이 http 트리거 펑션이 성공적으로 실행되었습니다. 개인화된 응답을 위해 쿼리 문자열 또는 요청 본문에 이름을 전달할 수 있습니다."
-                : $"안녕하세요, {name}님. 이 http 트리거 펑션이 성공적으로 실행되었습니다."
-                ;
-            responseMessage = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")} : {req.Host.ToString()}, {req.Path.ToString()}, {responseMessage}";
-            //HttpRequest.Host = localhost:7071
-            //HttpRequest.Path = /api/FuncDotNet2021xSeoul_Order
-            return new OkObjectResult(responseMessage);
+                if (String.IsNullOrEmpty(OrgOrderNo.ToString()) || OrgOrderNo == 0)
+                    throw new Exception("request body 에서 OrgOrderNo 값을 추출할 수 없습니다.");
+
+                NETX mNETX = new NETX();
+                mNETX.Add("@OrgOrderNo", DataType.Int, 0, OrgOrderNo);
+                mNETX.Add("@IsCancel", DataType.Bit, 0, true);
+                mNETX.Add("@Region", DataType.VarChar, 100, _Region);
+                mNETX.Add("@Host", DataType.VarChar, 100, req.Host);
+                mNETX.Add("@APIPath", DataType.VarChar, 200, req.Path);
+
+                mNETX.ExecuteNonQuery("DBO.USP_T_ORDERS");
+
+                string responseMessage = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}" + "\r\n" +
+                    $"Region = {_Region}" + "\r\n" +
+                    $"Host = {req.Host.ToString()}" + "\r\n" +
+                    $"Path = {req.Path.ToString()}" + "\r\n" +
+                    $"Method = {req.Method}" + "\r\n" +
+                    $"Body = {Body}" + "\r\n" +
+                    $"Message = Orders 테이블에 데이터를 정상적으로 반영했습니다.";
+
+                return new OkObjectResult(responseMessage);
+            }
+            catch (Exception Ex)
+            {
+                log.LogError(Ex, $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")} : {Ex.Message}", null);
+
+                return new OkObjectResult(Ex.Message);
+            }
+            finally
+            {
+                log.LogInformation($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}"+ "\r\n" +
+                    "Host {req.Host.ToString()} 에서 Http trigger - OrderCancel 이(가) 종료되었습니다.");
+            }
         }
 
-        //private static readonly string _Region = "Korea Central";
-        private static readonly string _Region = "West US";
+        private static readonly string _Region = "Korea Central";
+        //private static readonly string _Region = "West US";
 
         /// <summary>
         /// 특정 resourceId 에 대한 정보를 가져옵니다. https://docs.microsoft.com/ko-kr/rest/api/resources/resources/getbyid

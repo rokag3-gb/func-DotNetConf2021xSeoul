@@ -70,12 +70,14 @@ namespace DotNetConf2021xSeoul
             return mType;
         }
 
-        public void ExecuteNonQuery(string 프로시저명, DataSet 파라미터)
+        public void ExecuteNonQuery(string 프로시저명)
         {
             int i = 0;
             SqlParameter[] sqlParam = null;
 
             DBCon dbCon = null;
+
+            DataSet 파라미터 = this.GetDS();
 
             try
             {
@@ -112,7 +114,7 @@ namespace DotNetConf2021xSeoul
             }
         }
 
-        public DataSet FillDataSet(string 프로시저명, DataSet 파라미터)
+        public DataSet FillDataSet(string 프로시저명)
         {
             int i = 0;
             DBCon dbCon = null;
@@ -124,6 +126,8 @@ namespace DotNetConf2021xSeoul
 
             Exception _Ex = null;
             SqlException _SqlEx = null;
+
+            DataSet 파라미터 = this.GetDS();
 
             try
             {
