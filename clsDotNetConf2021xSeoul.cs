@@ -42,8 +42,8 @@ namespace DotNetConf2021xSeoul
                 mNETX.Add("@MemberNo", DataType.Int, 0, MemberNo);
                 mNETX.Add("@ProductNo", DataType.Int, 0, ProductNo);
                 mNETX.Add("@OrderQty", DataType.Int, 0, OrderQty);
-                mNETX.Add("@Region", DataType.VarChar, 100, _Region);
-                mNETX.Add("@Host", DataType.VarChar, 100, req.Host);
+                //mNETX.Add("@Region", DataType.VarChar, 100, _Region);
+                //mNETX.Add("@Host", DataType.VarChar, 100, req.Host);
                 mNETX.Add("@APIPath", DataType.VarChar, 200, req.Path);
 
                 mNETX.ExecuteNonQuery("DBO.USP_T_ORDERS");
@@ -91,8 +91,8 @@ namespace DotNetConf2021xSeoul
                 NETX mNETX = new NETX();
                 mNETX.Add("@OrgOrderNo", DataType.Int, 0, OrgOrderNo);
                 mNETX.Add("@IsCancel", DataType.Bit, 0, true);
-                mNETX.Add("@Region", DataType.VarChar, 100, _Region);
-                mNETX.Add("@Host", DataType.VarChar, 100, req.Host);
+                //mNETX.Add("@Region", DataType.VarChar, 100, _Region);
+                //mNETX.Add("@Host", DataType.VarChar, 100, req.Host);
                 mNETX.Add("@APIPath", DataType.VarChar, 200, req.Path);
 
                 mNETX.ExecuteNonQuery("DBO.USP_T_ORDERS");
