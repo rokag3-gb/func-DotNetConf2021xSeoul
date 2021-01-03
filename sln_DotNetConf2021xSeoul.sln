@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30711.63
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "prj_DotNetConf2021xSeoul", "prj_DotNetConf2021xSeoul.csproj", "{DDC62305-831B-4DE8-8B9C-73A4C41DBEBC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "prj_PerformanceTester", "..\prj_PerformanceTester\prj_PerformanceTester.csproj", "{953C1CE8-8F31-45BC-AFCE-9933FA2866C9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "prj_PerformanceTester", "../prj_PerformanceTester/prj_PerformanceTester.csproj", "{953C1CE8-8F31-45BC-AFCE-9933FA2866C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
