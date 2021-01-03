@@ -128,7 +128,8 @@ namespace DotNetConf2021xSeoul
                 return false;
         }
 
-        private static readonly string _Region = "Korea Central";
+        //private static readonly string _Region = "Korea Central";
+        private static readonly string _Region = "East Asia";
         //private static readonly string _Region = "West US";
 
         /// <summary>
