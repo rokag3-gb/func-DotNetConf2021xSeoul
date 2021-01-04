@@ -127,11 +127,7 @@ namespace DotNetConf2021xSeoul
             else
                 return false;
         }
-
-        //private static readonly string _Region = "Korea Central";
-        private static readonly string _Region = "East Asia";
-        //private static readonly string _Region = "West US";
-
+        
         /// <summary>
         /// 특정 resourceId 에 대한 정보를 가져옵니다. https://docs.microsoft.com/ko-kr/rest/api/resources/resources/getbyid
         /// </summary>
@@ -187,5 +183,10 @@ namespace DotNetConf2021xSeoul
 
             return Ret;
         }
+
+        #region Region (disused)
+        //private static readonly string _Region = "Korea Central";
+        private static readonly string _Region = "East Asia";
+        #endregion
     }
 }
